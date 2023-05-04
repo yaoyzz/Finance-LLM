@@ -1,8 +1,8 @@
 import sys
 sys.path.insert(0, '../')
 
-from benzinga import financial_data
-from benzinga import news_data
+from benzinga_tool import financial_data
+from benzinga_tool import news_data
 from bs4 import BeautifulSoup
 
 import pandas as pd
@@ -11,8 +11,8 @@ import json
 import inspect
 import datetime
 
-api_key = "318da1f2bee64e3caf1c22dfb78f70d1"
-news = news_data.News(api_key)
+# api_key = "318da1f2bee64e3caf1c22dfb78f70d1"
+# news = news_data.News(api_key)
 
 def process_stories(stories):
     df = pd.DataFrame(stories)[['created', 'title', 'body']]
@@ -23,7 +23,7 @@ def process_stories(stories):
     df['created'] = df['created'].dt.date
     return df
 
-def benzinga_call(ticker, fromdate, todate):
+def benzinga_call(news, ticker, fromdate, todate):
     stories = news.news(display_output='full', company_tickers=ticker, pagesize=100, date_from=fromdate, date_to=todate)
     df = process_stories(stories)
 
@@ -42,19 +42,19 @@ def benzinga_call(ticker, fromdate, todate):
         fromdate = (df.iloc[-1, 0] - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     return df
 
-tick_list = ['MSFT', 'JNJ', 'INTC', 'BA', 'UNH', 
-             'JPM', 'V', 'PG', 'HD', 'CVX', 
-             'MRK', 'KO', 'CSCO', 'MCD','WMT', 
-             'CRM', 'DIS', 'VZ', 'NKE', 'AAPL', 
-             'IBM', 'GS', 'HON', 'AXP', 'AMGN']
-fromdate = "2019-01-01"
-todate = "2023-05-03"
+# tick_list = ['MSFT', 'JNJ', 'INTC', 'BA', 'UNH', 
+#              'JPM', 'V', 'PG', 'HD', 'CVX', 
+#              'MRK', 'KO', 'CSCO', 'MCD','WMT', 
+#              'CRM', 'DIS', 'VZ', 'NKE', 'AAPL', 
+#              'IBM', 'GS', 'HON', 'AXP', 'AMGN']
+# fromdate = "2019-01-01"
+# todate = "2023-05-03"
 
-df_list = []
-for ticker in tick_list:
-    df_list.append( benzinga_call(ticker, fromdate, todate) )
-df = pd.concat(df_list, axis=0)
+# df_list = []
+# for ticker in tick_list:
+#     df_list.append( benzinga_call(news, ticker, fromdate, todate) )
+# df = pd.concat(df_list, axis=0)
 
-df = df.sort_values(by='created')
+# df = df.sort_values(by='created')
 
-df.to_csv('benzinga.csv', index=False)
+# df.to_csv('benzinga.csv', index=False)
