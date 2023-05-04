@@ -1,10 +1,5 @@
 import json
-import requests
 import pandas as pd
-from datetime import datetime
-from benzinga_tool import financial_data
-from benzinga_tool import news_data
-from benzinga_api.benzinga_api import * 
 from etl.etl import *
 from etl.benzinga import *
 
@@ -23,7 +18,7 @@ if __name__ == "__main__":
             'CRM', 'DIS', 'VZ', 'NKE', 'AAPL', 
             'IBM', 'GS', 'HON', 'AXP', 'AMGN']
     
-    Benzinga.pull_benzinga_news(api_keys, tick_list, fromdate, todate)
+    Benzinga.pull_batch_benzinga(api_keys, tick_list, fromdate, todate)
     
 
 

@@ -1,8 +1,3 @@
-import json
-import requests
-import pandas as pd
-from datetime import datetime
-
 # ETL super class for different api to inherit from
 class ETL:
     def __init__(self, api_keys, start_day=None, end_day=None):
