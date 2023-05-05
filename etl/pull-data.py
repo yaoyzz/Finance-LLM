@@ -3,6 +3,8 @@ import pandas as pd
 from api_etl.etl import *
 from api_etl.benzinga import *
 from api_etl.yahoofinance import *
+from api_etl.youtube import *
+
 
 if __name__ == "__main__":
     with open("api-keys.json", "r") as f:
