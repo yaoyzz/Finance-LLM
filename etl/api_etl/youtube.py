@@ -5,7 +5,8 @@ from youtube_transcript_api import YouTubeTranscriptApi
 
 
 class Youtube(ETL):
-    def __init__(self, channel_name):
+    def __init__(self, channel_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.api_key = self.api_keys["YouTube-Data-API-v3"][random.randint(0, 5)]
         self.channel_id = self.fetch_channel_id(channel_name)
     
