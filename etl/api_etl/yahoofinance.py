@@ -1,15 +1,15 @@
-# from __future__ import annotations
+from __future__ import annotations
+from api_etl.etl import ETL
 import exchange_calendars as tc
 import datetime
-from datetime import date
-from datetime import timedelta
+from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 import pytz
 import yfinance as yf
 from stockstats import StockDataFrame as Sdf
 
-class Yahoo():
+class Yahoo(ETL):
     """Provides methods for retrieving daily stock data from
     Yahoo Finance API
     Attributes
@@ -27,11 +27,17 @@ class Yahoo():
         Fetches data from yahoo API
     """
 
-    def __init__(self, start_date: str, end_date: str, ticker_list: list):
-        self.start_date = start_date
-        self.end_date = end_date
+    def __init__(self, ticker_list: list, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.ticker_list = ticker_list
+        self.df = pd.DataFrame()
 
+    # def __init__(self, start_date: str, end_date: str, ticker_list: list):
+    #     self.start_day = start_date
+    #     self.end_day = end_date
+    #     self.ticker_list = ticker_list
+    #     self.df = pd.DataFrame()
+    
     def fetch_data(self, proxy=None) -> pd.DataFrame:
         """Fetches data from Yahoo API
         Parameters
@@ -48,7 +54,7 @@ class Yahoo():
         num_failures = 0
         for tic in self.ticker_list:
             temp_df = yf.download(
-                tic, start=self.start_date, end=self.end_date, proxy=proxy
+                tic, start=self.start_day, end=self.end_day, proxy=proxy
             )
             temp_df["tic"] = tic
             if len(temp_df) > 0:
@@ -86,20 +92,79 @@ class Yahoo():
         data_df = data_df.dropna()
         data_df = data_df.reset_index(drop=True)
         print("Shape of DataFrame: ", data_df.shape)
-        # print("Display DataFrame: ", data_df.head())
         
         data_df = data_df.sort_values(by=["date", "tic"]).reset_index(drop=True)
-
+        self.df = data_df
         return data_df
 
+    def add_vix(self):
+        vix_ticker = "^VIX"
+        vix_data = yf.download(vix_ticker, start=self.start_day, end=self.end_day)
+        vix_data = vix_data.reset_index()
+        vix_data = vix_data[["Date", "Close"]]
+        vix_data.columns = ["date", "vix"]
+        vix_data["date"] = vix_data.date.apply(lambda x: x.strftime("%Y-%m-%d"))
+
+        # Merge the original data frame with the VIX data frame
+        merged_df = pd.merge(self.df, vix_data, on="date", how="left")
+        merged_df["vix"] = merged_df["vix"].fillna(method='ffill')
+        self.df = merged_df
+        return merged_df
+
+    def add_technical_indicators(self):
+        stock_df = Sdf.retype(self.df)
+        # Add MACD
+        stock_df['macd'] = stock_df.get('macd')
+        # Add KDJ
+        stock_df['kdjk'] = stock_df.get('kdjk')
+        stock_df['kdjd'] = stock_df.get('kdjd')
+        stock_df['kdjj'] = stock_df.get('kdjj')
+        # Add RSI
+        stock_df['rsi'] = stock_df.get('rsi_14')
+        # Add moving averages
+        stock_df['ma50'] = stock_df.get('close_50_sma')
+        stock_df['ma200'] = stock_df.get('close_200_sma')
+        self.df = stock_df
+
+        return stock_df
+
+    def add_bond(self):
+        etfs = ["TLT", "IEF", "SHY"]
+        etf_data = None
+
+        for etf in etfs:
+            temp_data = yf.download(etf, start=self.start_day, end=self.end_day)["Close"]
+            temp_data = temp_data.reset_index().rename(columns={"Date": "date", "Close": etf})
+
+            if etf_data is None:
+                etf_data = temp_data
+            else:
+                etf_data = pd.merge(etf_data, temp_data, on="date", how="left")
+
+        self.df["date"] = pd.to_datetime(self.df["date"])
+        merged_df = pd.merge(self.df, etf_data, on="date", how="left")
+        merged_df = merged_df.fillna(method='ffill')
+        self.df = merged_df
+        return merged_df
+
     def export_as_csv(self):
+        # # select only the useful columns
+        # useful_columns = [
+        #     "date", "open", "high", "low", "close", "volume", "tic",
+        #     "day", "macd", "kdjk", "kdjd", "kdjj", "rsi", "ma50", "ma200"
+        # ]
+        # data_df = data_df[useful_columns]
+
+        # round the value to 3 decimal places
+        exclude_columns = ['date', 'tic']
+        self.df.loc[:, ~self.df.columns.isin(exclude_columns)] = self.df.loc[:, ~self.df.columns.isin(exclude_columns)].round(3)
         if len(self.ticker_list) > 1:
-            self.fetch_data().to_csv('stock_price.csv', index=False)
+            self.df.to_csv('stock_price.csv', index=False)
         else:
-            self.fetch_data().to_csv(f'{self.ticker_list[0]}.csv', index=False)
+            self.df.to_csv(f'{self.ticker_list[0]}.csv', index=False)
 
 
-
+'''
 class YahooFinance:
     """Provides methods for retrieving daily stock data from
     Yahoo Finance API
@@ -339,26 +404,6 @@ class YahooFinance:
         df = df.sort_values(by=["timestamp", "tic"])
         return df
 
-    def add_vix(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        add vix from yahoo finance
-        :param data: (df) pandas dataframe
-        :return: (df) pandas dataframe
-        """
-        vix_df = self.download_data(["VIXY"], self.start, self.end, self.time_interval)
-        cleaned_vix = self.clean_data(vix_df)
-        print("cleaned_vix\n", cleaned_vix)
-        vix = cleaned_vix[["timestamp", "close"]]
-        print('cleaned_vix[["timestamp", "close"]\n', vix)
-        vix = vix.rename(columns={"close": "VIXY"})
-        print('vix.rename(columns={"close": "VIXY"}\n', vix)
-
-        df = data.copy()
-        print("df\n", df)
-        df = df.merge(vix, on="timestamp")
-        df = df.sort_values(["timestamp", "tic"]).reset_index(drop=True)
-        return df
-
     def calculate_turbulence(
         self, data: pd.DataFrame, time_period: int = 252
     ) -> pd.DataFrame:
@@ -574,3 +619,4 @@ class YahooFinance:
         turb_df = yf.download("VIXY", start_datetime, limit=1)
         latest_turb = turb_df["Close"].values
         return latest_price, latest_tech, latest_turb
+'''
