@@ -1,6 +1,5 @@
 from api_etl.etl import ETL
-from benzinga_tool import financial_data
-from benzinga_tool import news_data
+from benzinga_tool import financial_data,news_data
 from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
