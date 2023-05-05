@@ -1,4 +1,4 @@
-from etl.api_etl.etl import ETL
+from api_etl.etl import ETL
 import datetime, csv, requests, random
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -6,7 +6,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 
 class Youtube(ETL):
     def __init__(self, channel_name):
-        self.api_key = self.api_keys[random.randint(0, 5)]
+        self.api_key = self.api_keys["YouTube-Data-API-v3"][random.randint(0, 5)]
         self.channel_id = self.fetch_channel_id(channel_name)
     
     # method for fetching the channel id from the channel name
@@ -22,7 +22,7 @@ class Youtube(ETL):
         
     # Replace with your own API key, channel ID, and date
     def get(self):
-        api_key = self.api_keys[random.randint(0, 5)]
+        api_key = self.api_keys["YouTube-Data-API-v3"][random.randint(0, 5)]
         channel_id = self.channel_id
         start_date_str = self.start_day
         end_date_str = self.end_day
