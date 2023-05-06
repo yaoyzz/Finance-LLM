@@ -27,14 +27,14 @@ if __name__ == "__main__":
     # Benzinga.pull_batch_benzinga(api_keys, tick_list, fromdate, todate)
     
     #------------------------------pull yahoo stock data---------------------------------
-    # tick_list = ['SPY']
+    tick_list = ['SPY']
 
-    # yahoo = Yahoo(tick_list, api_keys, fromdate, todate)
-    # yahoo.fetch_data()
-    # yahoo.add_technical_indicators()
-    # yahoo.add_vix()
-    # yahoo.add_bond()
-    # yahoo.export_as_csv()
+    yahoo = Yahoo(tick_list, api_keys, fromdate, todate)
+    yahoo.fetch_data()
+    yahoo.add_technical_indicators()
+    yahoo.add_vix()
+    yahoo.add_bond()
+    yahoo.export_as_csv()
 
     #----------------------------pull macro economics data-------------------------------
     # fred = Fredapi(api_keys, fromdate, todate)
