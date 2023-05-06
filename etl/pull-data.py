@@ -6,13 +6,14 @@ from api_etl.yahoofinance import *
 from api_etl.fred import *
 from api_etl.youtube import *
 
+# working directory should be the same as this file
 if __name__ == "__main__":
-    with open("api-keys.json", "r") as f:
+    with open("../api-keys.json", "r") as f:
         api_keys = json.load(f)
-        print(api_keys)
+        print(f"Found keys for {', '.join(api_keys.keys())}")
 
     fromdate = "2019-01-01"
-    todate = "2023-05-03"
+    todate = "2023-05-06"
     
     #-------------------------uncomment below to fetch data------------------------------
 
@@ -38,11 +39,11 @@ if __name__ == "__main__":
     #----------------------------pull macro economics data-------------------------------
     # fred = Fredapi(api_keys, fromdate, todate)
     # fred.fetch_macro_data()
-
-    #---------------------------------pull youtube data----------------------------------
-    tube = Youtube(api_keys = api_keys, channel_name = 'The Stocks Channel', start_day = fromdate, end_day = todate)
-    tube.get()
-
+    
+    #----------------------------pull youtube data-------------------------------
+    # tube = Youtube(api_keys = api_keys, channel_name = 'The Stocks Channel', start_day = fromdate, end_day = todate)
+    # tube.get()
+    
 
 
 

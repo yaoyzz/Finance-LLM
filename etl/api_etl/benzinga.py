@@ -56,4 +56,4 @@ class Benzinga(ETL):
             df_list.append( news.get() )
         df = pd.concat(df_list, axis=0)
         df = df.sort_values(by='created')
-        df.to_csv('benzinga.csv', index=False)
+        df.to_csv('../data/benzinga.csv', index=False)

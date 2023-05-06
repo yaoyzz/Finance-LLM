@@ -24,6 +24,6 @@ class Fredapi(ETL):
 
         macro_df = nfp.merge(cpi, on="date").merge(interest_rates, on="date")
         macro_df = macro_df.round(4)
-        macro_df.to_csv('macro.csv', index=False)
+        macro_df.to_csv('../data/macro.csv', index=False)
         print('macro.csv created')
         return macro_df

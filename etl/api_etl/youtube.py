@@ -3,12 +3,12 @@ import datetime, csv, requests, random
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 
-
 class Youtube(ETL):
     def __init__(self, channel_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_key = self.api_keys["YouTube-Data-API-v3"][random.randint(0, 5)]
         self.channel_id = self.fetch_channel_id(channel_name)
+        self.channel_name = channel_name
     
     # method for fetching the channel id from the channel name
     def fetch_channel_id(self, channel_name):
@@ -62,7 +62,7 @@ class Youtube(ETL):
                 break
             
         # Save video data to a local CSV file
-        filename = "youtube.csv"
+        filename = f"../data/{self.channel_name}.csv"
         fieldnames = ["created", "title", "body", "channel_name"]
 
         # Check if the file exists and has a header
