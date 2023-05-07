@@ -12,12 +12,19 @@ class Benzinga(ETL):
         super().__init__(*args, **kwargs)
         self.ticker = ticker
 
+    # helper function to clean the text
+    def clean_text(self, text):
+        # Remove HTML tags using Beautiful Soup
+        soup = BeautifulSoup(text, 'html.parser')
+        clean_text = soup.get_text().replace('\n', ' ').replace('"', '').replace('\u2028', ' ').replace('\u2029', ' ').replace('\r', ' ')
+        return ' '.join(clean_text.split())
+
     # clean the response data
     def process_stories(self, stories):
         df = pd.DataFrame(stories)[['created', 'title', 'body']]
         df['created'] = pd.to_datetime(df['created'], errors='coerce')
-        # Remove HTML tags using Beautiful Soup
-        df['body'] = df['body'].apply(lambda x: BeautifulSoup(x, 'html.parser').get_text())
+        df['title'] = df['title'].apply(lambda x: x.replace('"', ''))
+        df['body'] = df['body'].apply(self.clean_text)
         df = df.dropna(subset=['created', 'title', 'body'])
         df['created'] = df['created'].dt.date
         return df
@@ -56,4 +63,5 @@ class Benzinga(ETL):
             df_list.append( news.get() )
         df = pd.concat(df_list, axis=0)
         df = df.sort_values(by='created')
+        df = df.drop_duplicates(subset=['created', 'title'], keep='first')
         df.to_csv('../data/benzinga.csv', index=False)

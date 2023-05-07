@@ -12,8 +12,8 @@ if __name__ == "__main__":
         api_keys = json.load(f)
         print(f"Found keys for {', '.join(api_keys.keys())}")
 
-    fromdate = "2019-01-01"
-    todate = "2023-05-06"
+    fromdate = "2018-05-01"
+    todate = "2023-05-05"
     
     #-------------------------uncomment below to fetch data------------------------------
 
@@ -23,18 +23,31 @@ if __name__ == "__main__":
     #         'MRK', 'KO', 'CSCO', 'MCD','WMT', 
     #         'CRM', 'DIS', 'VZ', 'NKE', 'AAPL', 
     #         'IBM', 'GS', 'HON', 'AXP', 'AMGN']
+
+    # cut the size to lower down gpt budget
+    # for the reference, 11 sections in sp500 include:
+    # Energy, Materials, Industrials, Consumer Discretionary, Consumer Staples, Health Care, Financials, Information Technology, Communication Services, Utilities, Real Estate
+    tick_list = ['MSFT', 'AAPL', # Tech ('INTC', 'CRM', 'IBM')
+                 'JNJ', 'UNH', # Health care ('MRK','AMGN')
+                 'JPM', # Financials ('GS','AXP','V')
+                 'BA', # Industrials ('HON')
+                 'WMT', # Consumer Staples ('PG'，'KO')
+                 'NKE', # Consumer Discretionary ('HD', 'MCD')
+                 'CVX', # Energy
+                 'VZ', # Communication Services ('DIS')
+                ]
     
-    # Benzinga.pull_batch_benzinga(api_keys, tick_list, fromdate, todate)
+    Benzinga.pull_batch_benzinga(api_keys, tick_list, fromdate, todate)
     
     #------------------------------pull yahoo stock data---------------------------------
-    tick_list = ['SPY']
+    # tick_list = ['SPY']
 
-    yahoo = Yahoo(tick_list, api_keys, fromdate, todate)
-    yahoo.fetch_data()
-    yahoo.add_technical_indicators()
-    yahoo.add_vix()
-    yahoo.add_bond()
-    yahoo.export_as_csv()
+    # yahoo = Yahoo(tick_list, api_keys, fromdate, todate)
+    # yahoo.fetch_data()
+    # yahoo.add_technical_indicators()
+    # yahoo.add_vix()
+    # yahoo.add_bond()
+    # yahoo.export_as_csv()
 
     #----------------------------pull macro economics data-------------------------------
     # fred = Fredapi(api_keys, fromdate, todate)

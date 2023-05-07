@@ -7,8 +7,10 @@ class OpenaiClassifier():
 
     # rate: $0.0200 / 1K tokens
     def get_ratings_from_davinci(self, review):
-        prompt = f"Rate the following review as an integer from 1 to 5, where 1 is the worst and 5 is the best: \"{review}\""
-        
+        prompt = f"Rate the following financial news as an integer from 1 to 10, \
+                where 1 is the most bearish and 10 is the most bullish \
+                    you should only say one integer: \"{review}\""
+                
         response = openai.Completion.create(
             engine="text-davinci-003",
             prompt=prompt,
@@ -28,16 +30,18 @@ class OpenaiClassifier():
     def get_ratings_from_gpt35(self, review):
         completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        temperature = 0.2,
+        temperature = 0.1,
+        max_tokens=30,
         messages=[
             # {"role": "system", "content": "You are a professional financial analyst."},
             {"role": "user", 
-             "content": f"Rate the following review as an integer from 1 to 5, where 1 is the worst and 5 is the best: \"{review}\""}
+             "content": f"Rate the following financial news as an integer from 1 to 10, \
+                where 1 is the most bearish and 10 is the most bullish \
+                    you should only say one integer: \"{review}\""}
         ]
         )
-
-        print(completion.choices[0].message)
-
+        # print(completion.choices[0].message['content'])
+        return completion.choices[0].message['content']
 
 
 
