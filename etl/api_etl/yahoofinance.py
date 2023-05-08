@@ -161,7 +161,7 @@ class Yahoo(ETL):
         if len(self.ticker_list) > 1:
             self.df.to_csv('stock_price.csv', index=False)
         else:
-            self.df.to_csv(f'../data/{self.ticker_list[0]}.csv', index=False)
+            self.df.to_csv(f'../data/{self.ticker_list[0]}_stock.csv', index=False)
 
 
 '''
