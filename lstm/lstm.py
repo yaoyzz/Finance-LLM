@@ -97,7 +97,7 @@ class lstm():
 
         # Define the LSTM model
         model = Sequential()
-        model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(1, X.shape[2])))
+        model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(1, self.X.shape[2])))
         for n in range(5):
             model.add(LSTM(20, activation='relu', return_sequences=True))
         model.add(LSTM(20, activation='relu', return_sequences=False))
@@ -130,7 +130,8 @@ class lstm():
 
         # Save the model
         model.save(f"best_model_{self.ticker}.h5")
-        self.model = model
+        self.model = load_model(f"best_model_{self.ticker}.h5")
+
 
     def plot_train(self):
         if self.model is None:
@@ -176,7 +177,10 @@ class lstm():
 
     def predict(self):
         if self.model is None:
-            self.train_lstm()
+            try:
+                self.model = load_model(f"best_model_{self.ticker}.h5")
+            except Exception:
+                self.train_lstm()
 
         #Reshape X to match LSTM input shape
         self.new_data = self.new_data.reshape((self.new_data.shape[0], 1, self.new_data.shape[1]))
@@ -192,7 +196,7 @@ class lstm():
             'Predictions': self.new_pred
         })
 
-        self.new_preds.to_csv('new_preds.csv')
+        self.new_preds.to_csv(f'new_preds_{self.ticker}.csv')
 
         fig, ax = plt.subplots(figsize=(12,8))
         plt.title('Next 6 Months Predictions')
