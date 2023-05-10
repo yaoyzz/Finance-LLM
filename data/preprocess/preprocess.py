@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import glob
 import os
 
@@ -43,6 +44,8 @@ class Preprocess():
         exclude_cols = ['open', 'high', 'low','tic']
         self.stock = self.stock.drop(columns=exclude_cols)
         self.stock['date'] = pd.to_datetime(self.stock['date']).dt.date
+        zero_rows = set( np.where(self.stock.iloc[:, 4:20] == 0)[0].tolist() )
+        self.stock = self.stock.drop(zero_rows).reset_index(drop=True)
         print('Snapshot of stock data:')
         print(self.stock.head())
         print(f"Size:{self.stock.shape}")
