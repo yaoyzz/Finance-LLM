@@ -5,6 +5,8 @@ impo.imp_inst('scikit-learn')
 impo.imp_inst('numpy')
 impo.imp_inst('tensorflow')
 impo.imp_inst('keras')
+impo.imp_inst('matplotlib')
+impo.imp_inst('plotly')
 
 import pandas as pd
 from datetime import date
@@ -203,7 +205,7 @@ class lstm():
     def plot_all(self):
         if self.new_pred is None:
             self.predict()
-            
+
         date_new = pd.concat([self.data_orig_final['Date'], self.new_data['close_price_lagged']], axis=0)
         len_zeros = int(len(date_new)-len(self.data_orig_final['close_price_lagged']))
         observed_new = pd.concat([self.data_orig_final['close_price_lagged'], pd.Series(np.zeros(len_zeros))], axis=0)
