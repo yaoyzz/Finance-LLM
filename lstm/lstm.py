@@ -1,12 +1,14 @@
+import os
+import sys
+sys.path.append(os.path.abspath('..'))
 from impo import impo
-
-impo.imp_inst('pandas')
-impo.imp_inst('scikit-learn')
-impo.imp_inst('numpy')
-impo.imp_inst('tensorflow')
-impo.imp_inst('keras')
-impo.imp_inst('matplotlib')
-impo.imp_inst('plotly')
+impo.imp_inst.import_or_install('pandas')
+impo.imp_inst.import_or_install('scikit-learn')
+impo.imp_inst.import_or_install('numpy')
+impo.imp_inst.import_or_install('tensorflow')
+impo.imp_inst.import_or_install('keras')
+impo.imp_inst.import_or_install('matplotlib')
+impo.imp_inst.import_or_install('plotly')
 
 import pandas as pd
 from datetime import date
@@ -22,7 +24,7 @@ import matplotlib.dates as mdates
 import plotly.graph_objs as go
 
 
-class lstm():
+class Lstm():
     def __init__(self, ticker: str):
         self.ticker = ticker
         self.data = None
@@ -45,12 +47,12 @@ class lstm():
         self.preds_train = None
         self.preds_test = None
         self.new_preds = None
-
+        print('lstm intance initialized')
     
-
     def get_data(self):
         ## Call function to get data in csv
-        self.data = self.function(self.ticker)
+        self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
+        print(f'{self.ticker} size: {self.data.shape}')
         self.data_original = self.data.copy()
 
     def preprocess(self):

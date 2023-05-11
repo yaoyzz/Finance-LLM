@@ -1,5 +1,5 @@
 from __future__ import annotations
-from api_etl.etl import ETL
+from etl.api_etl.etl import ETL
 import exchange_calendars as tc
 import datetime
 from datetime import date, timedelta
@@ -162,6 +162,7 @@ class Yahoo(ETL):
             self.df.to_csv('stock_price.csv', index=False)
         else:
             self.df.to_csv(f'../data/{self.ticker_list[0]}_stock.csv', index=False)
+            print(f"{self.ticker_list[0]}_stock.csv created!")
 
 
 '''

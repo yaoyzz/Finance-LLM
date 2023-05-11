@@ -13,7 +13,7 @@ if __name__ == "__main__":
         print(f"Found keys for {', '.join(api_keys.keys())}")
 
     fromdate = "2018-05-01"
-    todate = "2023-05-05"
+    todate = "2023-05-04"
     
     #-------------------------uncomment below to fetch data------------------------------
 
@@ -50,8 +50,8 @@ if __name__ == "__main__":
     # yahoo.export_as_csv()
 
     #----------------------------pull macro economics data-------------------------------
-    fred = Fredapi(api_keys, fromdate, todate)
-    fred.fetch_macro_data()
+    # fred = Fredapi(api_keys, fromdate, todate)
+    # fred.fetch_macro_data()
     
     #----------------------------pull youtube data-------------------------------
     # tube = Youtube(api_keys = api_keys, channel_name = 'The Stocks Channel', start_day = fromdate, end_day = todate)

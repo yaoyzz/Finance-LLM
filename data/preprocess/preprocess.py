@@ -4,10 +4,11 @@ import glob
 import os
 
 class Preprocess():
-    def __init__(self, path:str):
+    def __init__(self, path:str, tick:str):
         self.benzinga = None
         self.macro = None
         self.youtube = None
+        self.tick = tick
         self.stock = None
         self.combination = None
         try:
@@ -23,7 +24,7 @@ class Preprocess():
         except FileNotFoundError:
             print('YouTube file not found')
         try:
-            stock_file = glob.glob(os.path.join(path, '*_stock.csv'))[0]
+            stock_file = glob.glob(os.path.join(path, f'{tick}_stock.csv'))[0]
             self.stock = pd.read_csv(stock_file)
         except IndexError:
             print('Stock file not found')
@@ -51,27 +52,19 @@ class Preprocess():
         print(f"Size:{self.stock.shape}")
 
     def clean_macro(self):
-        # Create a DataFrame with dates from 2023-02-02 to 2023-03-22 and interest rate = 4.58
-        new_dates_1 = pd.date_range(start='2023-02-02', end='2023-03-22')
-        new_data_1 = {'date': new_dates_1, 'interest_rates': 4.58}
+        new_dates_1 = pd.date_range(start='2023-04-01', end='2023-04-30')
+        new_data_1 = {'date': new_dates_1, 'NFP' : 155673.0, 'InterestRate': 4.83, 'UnemploymentRate' : 3.4, 'PPI' : 257.381, 'CPI': 302.918}
         new_df_1 = pd.DataFrame(new_data_1)
+        # # nfp, Unemployment Rate used a mock value, 
+        # new_dates_2 = pd.date_range(start='2023-05-01', end='2023-05-04')
+        # new_data_2 = {'date': new_dates_2, 'NFP' : 155873.0, 'InterestRate': 5.08, 'UnemploymentRate' : '3.4', 'PPI' : 257}
+        # new_df_2 = pd.DataFrame(new_data_2)
 
-        # Create a DataFrame with dates from 2023-03-23 to 2023-05-03 and interest rate = 4.83
-        new_dates_2 = pd.date_range(start='2023-03-23', end='2023-05-03')
-        new_data_2 = {'date': new_dates_2, 'interest_rates': 4.83}
-        new_df_2 = pd.DataFrame(new_data_2)
+        # # Concatenate the two DataFrames
+        # new_df_12 = pd.concat([new_df_1, new_df_2], ignore_index=True)
+        self.macro = pd.concat([self.macro, new_df_1], ignore_index=True)
 
-        # Concatenate the two DataFrames
-        new_df_12 = pd.concat([new_df_1, new_df_2], ignore_index=True)
-        self.macro = pd.concat([self.macro, new_df_12], ignore_index=True)
-
-        new_data = {'date': '2023-05-04',
-                    'nfp': 0.0,
-                    'cpi': 0.0,
-                    'interest_rates': 5.08}
-        new_df = pd.DataFrame(new_data, index=[0])
-        self.macro = pd.concat([self.macro, new_df], ignore_index=True)
-        self.macro = self.macro[['date', 'interest_rates']]
+        self.macro = self.macro[['date','NFP','InterestRate','UnemploymentRate','PPI','CPI']]
         self.macro['date'] = pd.to_datetime(self.macro['date']).dt.date
         print('Snapshot of macro data:')
         print(self.macro.head())
@@ -88,11 +81,11 @@ class Preprocess():
         self.combination['benz_rate'] = self.combination['benz_rate'].fillna(method='ffill')
         self.combination['benz_rate'] = self.combination.groupby(['close', 'volume', 'day'])['benz_rate'].transform('mean')
         self.combination['benz_rate'] = self.combination['benz_rate'].round(3)
+        self.combination = self.combination.fillna(method='ffill')
         self.combination = self.combination[self.combination['date'].isin(self.stock['date'])].sort_values(by='date').reset_index(drop=True)
 
     def export_to_csv(self):
-        self.combination.to_csv("../data/cleaned_data.csv", index=False)
-
+        self.combination.to_csv(f"../data/{self.tick}_cleaned_data.csv", index=False)
 
 
     # # this uncompleted function is used to merge tables based on user input

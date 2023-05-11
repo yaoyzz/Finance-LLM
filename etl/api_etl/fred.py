@@ -4,25 +4,42 @@ from api_etl.etl import ETL
 class Fredapi(ETL):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.indices = ["PAYEMS", "FEDFUNDS", "UNRATE", "PPIACO", "CPIAUCSL",
+                        "PCE", "INDPRO", "UMCSENT", "RSAFS", "HOUST", "CSUSHPINSA"],
 
     def fetch_macro_data(self):
         fred = Fred(api_key=self.api_keys["Fred"])
-        # Non-Farm Payrolls (NFPs)
-        nfp = fred.get_series("PAYEMS", self.start_day, self.end_day)
-        nfp = nfp.resample("D").ffill().reset_index()
-        nfp.columns = ["date", "nfp"]
+        dfs = []
 
-        # Consumer Price Index (CPI)
-        cpi = fred.get_series("CPALTT01USM657N", self.start_day, self.end_day)
-        cpi = cpi.resample("D").ffill().reset_index()
-        cpi.columns = ["date", "cpi"]
+        # Mapping of series IDs to their actual names
+        names = {
+            "PAYEMS": "NFP", # Non-Farm Payrolls
+            "CPIAUCSL": "CPI", # Consumer Price Index
+            "FEDFUNDS": "InterestRate", # Effective Federal Funds Rate
+            "UNRATE": "UnemploymentRate",
+            "PPIACO": "PPI", # Producer Price Index
+            "PCE": "PCE", # Personal Consumption Expenditures
+            "INDPRO": "IPI", # Industrial Production Index
+            "UMCSENT": "ConsumerSentiment",
+            "RSAFS": "RetailSales",
+            "HOUST": "HousingStarts",
+            "CSUSHPINSA": "HPI", # S&P/Case-Shiller U.S. National Home Price Index
+        }
 
-        # Interest Rates (Effective Federal Funds Rate)
-        interest_rates = fred.get_series("FEDFUNDS", self.start_day, self.end_day)
-        interest_rates = interest_rates.resample("D").ffill().reset_index()
-        interest_rates.columns = ["date", "interest_rates"]
+        for index in self.indices[0]: # Note: self.indices is a tuple with a single list
+            series = fred.get_series(index, self.start_day, self.end_day)
+            series = series.resample("D").ffill().reset_index()
+            series.columns = ["date", index]
+            dfs.append(series)
 
-        macro_df = nfp.merge(cpi, on="date").merge(interest_rates, on="date")
+        # Merge all dataframes on 'date'
+        macro_df = dfs[0]
+        for df in dfs[1:]:
+            macro_df = macro_df.merge(df, on='date', how='outer')
+
+        # Rename the columns
+        macro_df.rename(columns=names, inplace=True)
+
         macro_df = macro_df.round(4)
         macro_df.to_csv('../data/macro.csv', index=False)
         print('macro.csv created')
