@@ -31,6 +31,12 @@ class lstm():
         self.dat_orig_final = None
         self.X = None
         self.y = None
+        self.X_train = None
+        self.y_train = None
+        self.X_val = None
+        self.y_val = None
+        self.X_test = None
+        self.y_test = None
         self.split_idx = None
         self.model = None
         self.x_pred  = None
@@ -39,6 +45,8 @@ class lstm():
         self.preds_train = None
         self.preds_test = None
         self.new_preds = None
+
+    
 
     def get_data(self):
         ## Call function to get data in csv
@@ -92,8 +100,12 @@ class lstm():
 
         # Split the data into training and testing sets
         self.split_idx = int(len(self.X) * idx)
-        X_train, X_test = self.X[:self.split_idx], self.X[self.split_idx:]
-        y_train, y_test = self.y[:self.split_idx], self.y[self.split_idx:]
+        self.X_train, self.X_test = self.X[:self.split_idx], self.X[self.split_idx:]
+        self.y_train, self.y_test = self.y[:self.split_idx], self.y[self.split_idx:]
+
+        # Split train into train and val test
+        self.X_train, self.X_val = self.X_train[:self.split_idx], self.X_train[self.split_idx:]
+        self.y_train, self.y_test = self.y_train[:self.split_idx], self.y_train[self.split_idx:]
 
         # Define the LSTM model
         model = Sequential()
@@ -113,20 +125,26 @@ class lstm():
         early_stopping = EarlyStopping(monitor='val_loss', patience=200)
 
         # Train the model with early stopping
-        history = model.fit(X_train, y_train, epochs=2000, verbose=1, validation_data=(X_test, y_test), callbacks=[early_stopping])
+        history = model.fit(self.X_train, self.y_train, 
+                            epochs=2000, 
+                            verbose=1, 
+                            validation_data=(self.X_val, self.y_val), 
+                            callbacks=[early_stopping])
 
         # Use the best model for predictions
-        y_pred = model.predict(X_test)
-        x_pred = model.predict(X_train)
+        train_pred = model.predict(self.X_train)
+        val_pred = model.predict(self.X_val)
+        test_pred = model.predict(self.X_test)
 
         # Calculate the MAE
-        mae = np.mean(np.abs(y_pred - y_test))
+        mae = np.mean(np.abs(test_pred - self.y_test))
 
         # Print the MAE
         print("MAE: ", mae)
 
-        self.x_pred = [x[0] for x in x_pred]
-        self.y_pred = [x[0] for x in y_pred]
+        self.train_pred = [x[0] for x in train_pred]
+        self.val_pred = [x[0] for x in val_pred]
+        self.test_pred = [x[0] for x in test_pred]
 
         # Save the model
         model.save(f"best_model_{self.ticker}.h5")
@@ -138,12 +156,33 @@ class lstm():
             self.train_lstm()
         
         self.preds_train = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][:self.split_idx],
+            'Date': self.data_orig_final['Date'][180:180+(self.split_idx**2)],
+            'Predictions': self.split_idxx_pred,
+            'Observed': self.data_orig_final['close_price_lagged'][:(self.split_idx**2)]
+        })
+
+        self.preds_train.to_csv(f'train_pred_{self.ticker}.csv')
+
+        fig, ax = plt.subplots(figsize=(12,8))
+        plt.title('Train Predictions')
+        ax.plot('Date', 'Predictions', data=self.preds_train, label='Predictions')
+        ax.plot('Date', 'Observed', data=self.preds_train, label='Observed', linewidth=0.5) # set alpha to 0.5 for the Observed line
+        plt.xticks(rotation=60)
+        ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=3))
+        ax.legend()
+        plt.show()
+
+    def plot_val(self):
+        if self.model is None:
+            self.train_lstm()
+        
+        self.preds_train = pd.DataFrame({
+            'Date': self.data_orig_final['Date'][180:180+self.split_idx],
             'Predictions': self.split_idxx_pred,
             'Observed': self.data_orig_final['close_price_lagged'][:self.split_idx]
         })
 
-        self.preds_train.to_csv('train_pred.csv')
+        self.preds_train.to_csv(f'val_pred_{self.ticker}.csv')
 
         fig, ax = plt.subplots(figsize=(12,8))
         plt.title('Train Predictions')
@@ -159,12 +198,12 @@ class lstm():
             self.train_lstm()
 
         self.preds_test = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][self.split_idx:],
+            'Date': self.data_orig_final['Date'][self.split_idx+180:self.data_orig_final.shape[0]].reset_index(drop=True),
             'Predictions': self.y_pred,
-            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx:]
+            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx: self.data_orig_final.shape[0]-180].reset_index(drop=True)
         })
 
-        self.preds_test.to_csv('test_pred.csv')
+        self.preds_test.to_csv(f'test_pred_{self.ticker}.csv')
 
         fig, ax = plt.subplots(figsize=(12,8))
         plt.title('Test Predictions')
