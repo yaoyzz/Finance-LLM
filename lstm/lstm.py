@@ -94,7 +94,7 @@ class lstm():
         # reshape for LSTM
         self.X = self.X.reshape(self.X.shape[0], 1, self.X.shape[1])  # reshape to 3D array
 
-    def train_lstm(self, idx=0.8):
+    def train_lstm(self, idx=0.8, layers=6, lr=0.01, early_stopping=200, epochs=2000):
         if self.X is None:
             self.preprocess()
 
@@ -110,7 +110,7 @@ class lstm():
         # Define the LSTM model
         model = Sequential()
         model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(1, self.X.shape[2])))
-        for n in range(5):
+        for n in range(layers-1):
             model.add(LSTM(20, activation='relu', return_sequences=True))
         model.add(LSTM(20, activation='relu', return_sequences=False))
         model.add(Dropout(0.1))
@@ -118,15 +118,15 @@ class lstm():
         model.add(Dense(1))
 
         # Compile the model with an appropriate learning rate and metric
-        opt = Adam(learning_rate=0.01)
+        opt = Adam(learning_rate=lr)
         model.compile(optimizer=opt, loss='mean_absolute_error', metrics=['mae'])
 
         # Define early stopping criteria
-        early_stopping = EarlyStopping(monitor='val_loss', patience=200)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=early_stopping)
 
         # Train the model with early stopping
         history = model.fit(self.X_train, self.y_train, 
-                            epochs=2000, 
+                            epochs=epochs, 
                             verbose=1, 
                             validation_data=(self.X_val, self.y_val), 
                             callbacks=[early_stopping])
