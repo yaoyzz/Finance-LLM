@@ -96,7 +96,7 @@ class Lstm():
         # reshape for LSTM
         self.X = self.X.reshape(self.X.shape[0], 1, self.X.shape[1])  # reshape to 3D array
 
-    def train_lstm(self, idx=0.8, layers=6, lr=0.01, early_stopping=200, epochs=2000):
+    def train_lstm(self, idx=0.8, layers=6, lr=0.01, early_stopping=200, epochs=2000, save="On"):
         if self.X is None:
             self.preprocess()
 
@@ -149,8 +149,11 @@ class Lstm():
         self.test_pred = [x[0] for x in test_pred]
 
         # Save the model
-        model.save(f"best_model_{self.ticker}.h5")
-        self.model = load_model(f"best_model_{self.ticker}.h5")
+        if save=="On":
+            model.save(f"best_model_{self.ticker}.h5")
+            self.model = load_model(f"best_model_{self.ticker}.h5")
+        else:
+            self.model = model
 
 
     def plot_train(self):
