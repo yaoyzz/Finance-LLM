@@ -10,6 +10,7 @@ class Preprocess():
         self.youtube = None
         self.tick = tick
         self.stock = None
+        self.earning = None
         self.combination = None
         try:
             self.benzinga = pd.read_csv(os.path.join(path, 'benzinga_with_ratings.csv'))
@@ -27,7 +28,13 @@ class Preprocess():
             stock_file = glob.glob(os.path.join(path, f'{tick}_stock.csv'))[0]
             self.stock = pd.read_csv(stock_file)
         except IndexError:
-            print('Stock file not found')
+            print(f'Stock file for {self.tick} not found')
+        try:
+            earning_file = glob.glob(os.path.join(path, f'{tick}_earnings.csv'))[0]
+            self.earning = pd.read_csv(earning_file)
+        except IndexError:
+            print(f'Earning file for {self.tick} not found')
+        
 
     def clean_benzinga(self):
         self.benzinga = self.benzinga[['created', 'benz_rate']]
@@ -50,6 +57,17 @@ class Preprocess():
         print('Snapshot of stock data:')
         print(self.stock.head())
         print(f"Size:{self.stock.shape}")
+
+    def clean_earning(self):
+        if self.earning is not None:
+            self.earning['reportedDate'] = pd.to_datetime(self.earning['reportedDate']).dt.date
+            self.earning = self.earning[['reportedDate', 'reportedEPS', 'estimatedEPS', 'surprisePercentage']]
+            self.earning = self.earning.rename(columns={'reportedDate': 'date', 'surprisePercentage' : 'surprisePct'})
+            self.earning = self.earning.sort_values(by='date').reset_index(drop=True)
+            print('Snapshot of earning data:')
+            print(self.earning.head())
+            print(f"Size:{self.earning.shape}")
+
 
     def clean_macro(self):
         new_dates_1 = pd.date_range(start='2023-04-01', end='2023-04-30')
@@ -81,6 +99,9 @@ class Preprocess():
         self.combination['benz_rate'] = self.combination['benz_rate'].fillna(method='ffill')
         self.combination['benz_rate'] = self.combination.groupby(['close', 'volume', 'day'])['benz_rate'].transform('mean')
         self.combination['benz_rate'] = self.combination['benz_rate'].round(3)
+        if self.earning is not None:
+            self.combination = pd.merge(self.combination, self.earning, on='date', how='outer')
+        self.combination = self.combination.sort_values(by='date').reset_index(drop=True)    
         self.combination = self.combination.fillna(method='ffill')
         self.combination = self.combination[self.combination['date'].isin(self.stock['date'])].sort_values(by='date').reset_index(drop=True)
 

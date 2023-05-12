@@ -2,9 +2,10 @@ import json
 import pandas as pd
 from api_etl.etl import *
 from api_etl.benzinga import *
-from api_etl.yahoofinance import *
+# from api_etl.yahoofinance import *
 from api_etl.fred import *
 from api_etl.youtube import *
+from api_etl.alphavantage import *
 
 # working directory should be the same as this file
 if __name__ == "__main__":
@@ -48,6 +49,10 @@ if __name__ == "__main__":
     # yahoo.add_vix()
     # yahoo.add_bond()
     # yahoo.export_as_csv()
+    #------------------------------pull yahoo stock data---------------------------------
+    tick = 'NVDA'
+    alpha = Alphavantage(api_keys)
+    alpha.fetch_earning_data(tick)
 
     #----------------------------pull macro economics data-------------------------------
     # fred = Fredapi(api_keys, fromdate, todate)

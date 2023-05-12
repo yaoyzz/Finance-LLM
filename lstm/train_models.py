@@ -4,6 +4,7 @@ import sys
 sys.path.append(os.path.abspath('..'))
 # print(os.getcwd())
 from etl.api_etl.yahoofinance import *
+from etl.api_etl.alphavantage import *
 from data.preprocess.preprocess import *
 import json
 
@@ -33,10 +34,14 @@ for ticker in tickers:
     # yahoo.add_bond()
     # yahoo.export_as_csv()
 
+    # alpha = Alphavantage(api_keys)
+    # alpha.fetch_earning_data(ticker)
+
     # merger = Preprocess('../data/', ticker)
     # merger.clean_benzinga()
     # merger.clean_stock()
     # merger.clean_macro()
+    # merger.clean_earning()
     # merger.merge_table()
     # merger.export_to_csv()
 
