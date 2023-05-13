@@ -52,8 +52,16 @@ class Preprocess():
         exclude_cols = ['open', 'high', 'low','tic']
         self.stock = self.stock.drop(columns=exclude_cols)
         self.stock['date'] = pd.to_datetime(self.stock['date']).dt.date
-        zero_rows = set( np.where(self.stock.iloc[:, 4:20] == 0)[0].tolist() )
-        self.stock = self.stock.drop(zero_rows).reset_index(drop=True)
+
+        zero_rows = set(np.where(self.stock.iloc[:10, 4:20] == 0)[0].tolist())
+        inf_rows = set(np.where(np.isinf(self.stock.iloc[:, 4:20]))[0].tolist())
+        neg_inf_rows = set(np.where(np.isinf(self.stock.iloc[:, 4:20]) & (self.stock.iloc[:, 4:20] < 0))[0].tolist())
+        nan_rows = set(np.where(np.isnan(self.stock.iloc[:, 4:20]))[0].tolist())
+        invalid_rows = zero_rows.union(inf_rows).union(neg_inf_rows).union(nan_rows)
+        print(invalid_rows)
+        print()
+        self.stock = self.stock.drop(list(invalid_rows)).reset_index(drop=True)
+
         print('Snapshot of stock data:')
         print(self.stock.head())
         print(f"Size:{self.stock.shape}")
