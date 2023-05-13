@@ -1,15 +1,15 @@
 # uncomment to install the required libraries
-# import os
-# import sys
-# sys.path.append(os.path.abspath('..'))
-# from impo import impo
-# impo.imp_inst.import_or_install('pandas')
-# impo.imp_inst.import_or_install('scikit-learn')
-# impo.imp_inst.import_or_install('numpy')
-# impo.imp_inst.import_or_install('tensorflow')
-# impo.imp_inst.import_or_install('keras')
-# impo.imp_inst.import_or_install('matplotlib')
-# impo.imp_inst.import_or_install('plotly')
+import os
+import sys
+sys.path.append(os.path.abspath('..'))
+from impo import impo
+impo.imp_inst.import_or_install('pandas')
+impo.imp_inst.import_or_install('scikit-learn')
+impo.imp_inst.import_or_install('numpy')
+impo.imp_inst.import_or_install('tensorflow')
+impo.imp_inst.import_or_install('keras')
+impo.imp_inst.import_or_install('matplotlib')
+impo.imp_inst.import_or_install('plotly')
 
 import pandas as pd
 from datetime import date
@@ -50,16 +50,21 @@ class Lstm():
         self.new_preds = None
         print('\nlstm intance initialized')
     
+    ############################################################
+
     def get_data(self):
         try:
-            self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
+            #os.chdir(os.getcwd())
+            self.data = pd.read_csv(f'data/{self.ticker}_cleaned_data.csv')
             print(f'{self.ticker} data imported. Size: {self.data.shape}')
         except FileNotFoundError:
             print(f'Error: File for {self.ticker} not found.')
 
-        self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
+        #self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
         print(f'{self.ticker} size: {self.data.shape}')
         self.data_original = self.data.copy()
+
+    ############################################################
 
     def preprocess(self):
         # Preprocess date column
@@ -68,6 +73,14 @@ class Lstm():
 
         self.data['Date'] = pd.to_datetime(self.data['date'])
         self.data.drop(['date'], axis=1, inplace=True)
+
+        self.data['month_sin'] = np.sin(2*np.pi*self.data['Date'].dt.month/12)
+        self.data['month_cos'] = np.cos(2*np.pi*self.data['Date'].dt.month/12)
+        self.data['day_of_month_sin'] = np.sin(2*np.pi*self.data['Date'].dt.day/31)
+        self.data['day_of_month_cos'] = np.cos(2*np.pi*self.data['Date'].dt.day/31)
+        self.data['day_of_week_sin'] = np.sin(2*np.pi*self.data['day']/5)
+        self.data['day_of_week_cos'] = np.cos(2*np.pi*self.data['day']/5)
+        self.data = self.data.drop('day', axis=1)
 
         self.data['Year'] = self.data['Date'].dt.year
         self.data['Month'] = self.data['Date'].dt.month
@@ -79,7 +92,7 @@ class Lstm():
         self.data.set_index('Date', inplace=True)
 
         # lag the 'close_price' column by three months
-        self.data['close_price_lagged'] = self.data['close'].shift(6*30)
+        self.data['close_price_lagged'] = self.data['close'].shift(-6*30)
 
         # reset the index back to a column
         self.data.reset_index(inplace=True)
@@ -93,14 +106,16 @@ class Lstm():
 
         # scale data
         scaler = StandardScaler()
-        self.data.iloc[:, 1:28] = scaler.fit_transform(self.data.iloc[:, 1:28])  # standardize year and day columns
-        self.new_data.iloc[:, 1:28] = scaler.fit_transform(self.new_data.iloc[:, 1:28])
+        self.data.iloc[:, 1:self.data.shape[1]-1] = scaler.fit_transform(self.data.iloc[:, 1:self.data.shape[1]-1])  # standardize year and day columns
+        self.new_data.iloc[:, 1:self.new_data.shape[1]-1] = scaler.fit_transform(self.new_data.iloc[:, 1:self.new_data.shape[1]-1])
 
         self.X = self.data.drop('close_price_lagged', axis=1).values
         self.y = self.data['close_price_lagged'].values.reshape(-1, 1)
 
         # reshape for LSTM
         self.X = self.X.reshape(self.X.shape[0], 1, self.X.shape[1])  # reshape to 3D array
+
+    ############################################################
 
     def train_lstm(self, idx=0.8, layers=6, lr=0.01, early_stopping=200, epochs=2000, save="On"):
         if self.X is None:
@@ -130,7 +145,7 @@ class Lstm():
         model.compile(optimizer=opt, loss='mean_absolute_error', metrics=['mae'])
 
         # Define early stopping criteria
-        early_stopping = EarlyStopping(monitor='val_loss', patience=early_stopping)
+        early_stopping = EarlyStopping(monitor='val_mae', patience=early_stopping)
 
         # Train the model with early stopping
         history = model.fit(self.X_train, self.y_train, 
@@ -161,6 +176,7 @@ class Lstm():
         else:
             self.model = model
 
+    ############################################################
 
     def plot_train(self):
         if self.model is None:
@@ -183,6 +199,8 @@ class Lstm():
         ax.legend()
         plt.show()
 
+    ############################################################
+
     def plot_val(self):
         if self.model is None:
             self.train_lstm()
@@ -203,6 +221,8 @@ class Lstm():
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=3))
         ax.legend()
         plt.show()
+
+    ############################################################
 
     def plot_test(self):
         if self.model is None:
@@ -225,6 +245,8 @@ class Lstm():
         ax.legend()
         plt.show()
 
+    ############################################################
+
     def predict(self):
         if self.model is None:
             try:
@@ -236,6 +258,8 @@ class Lstm():
         self.new_data = self.new_data.reshape((self.new_data.shape[0], 1, self.new_data.shape[1]))
         self.new_pred = self.model.predict(self.new_data)
         self.new_pred = [x[0] for x in self.new_pred]
+
+    ############################################################
 
     def plot_preds(self):
         if self.new_pred is None:
@@ -255,6 +279,8 @@ class Lstm():
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
         ax.legend()
         plt.show()
+
+    ############################################################
 
     def plot_all(self):
         if self.new_pred is None:
