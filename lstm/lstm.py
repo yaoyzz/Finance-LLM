@@ -177,9 +177,9 @@ class Lstm():
 
         # Save the model
         if save=="On":
-            model.save(f"best_model_{self.ticker}.h5")
+            model.save(f"lstm/models/best_model_{self.ticker}.h5")
             #ModelCheckpoint(f"best_model_{self.ticker}.h5", monitor='val_mae', mode='min', save_best_only=True)
-            self.model = load_model(f"best_model_{self.ticker}.h5")
+            self.model = load_model(f"lstm/models/best_model_{self.ticker}.h5")
         else:
             self.model = model
 
