@@ -26,8 +26,10 @@ import plotly.graph_objs as go
 
 
 class Lstm(): 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, range: int):
         self.ticker = ticker
+        self.range = int(range)
+        self.days = int(range*30)
         self.data = None
         self.data_original = None
         self.new_data = None
@@ -94,7 +96,7 @@ class Lstm():
         self.data.set_index('Date', inplace=True)
 
         # lag the 'close_price' column by three months
-        self.data['close_price_lagged'] = self.data['close'].shift(-6*30)
+        self.data['close_price_lagged'] = self.data['close'].shift(-self.days)
 
         # reset the index back to a column
         self.data.reset_index(inplace=True)
@@ -190,7 +192,7 @@ class Lstm():
             self.train_lstm()
         
         self.preds_train = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][:self.split_idx_val]+ pd.DateOffset(days=180),
+            'Date': self.data_orig_final['Date'][:self.split_idx_val]+ pd.DateOffset(days=self.days),
             'Predictions': self.train_pred,
             'Observed': self.data_orig_final['close_price_lagged'][:self.split_idx_val]
         })
@@ -213,7 +215,7 @@ class Lstm():
             self.train_lstm()
         
         self.preds_val = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][self.split_idx_val:self.split_idx] + pd.DateOffset(days=180),
+            'Date': self.data_orig_final['Date'][self.split_idx_val:self.split_idx] + pd.DateOffset(days=self.days),
             'Predictions': self.val_pred,
             'Observed': self.data_orig_final['close_price_lagged'][self.split_idx_val:self.split_idx]
         })
@@ -236,9 +238,9 @@ class Lstm():
             self.train_lstm()
 
         self.preds_test = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][self.split_idx:self.data_orig_final.shape[0]-180] + pd.DateOffset(days=180),
+            'Date': self.data_orig_final['Date'][self.split_idx:self.data_orig_final.shape[0]-self.days] + pd.DateOffset(days=self.days),
             'Predictions': self.test_pred,
-            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx:data_orig_final.shape[0]-180]
+            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx:self.data_orig_final.shape[0]-self.days]
             })
 
         self.preds_test.to_csv(f'test_pred_{self.ticker}.csv')
@@ -257,7 +259,10 @@ class Lstm():
     def predict(self):
         if self.model is None:
             try:
-                self.model = load_model(f"best_model_{self.ticker}.h5")
+                self.model = load_model(f"lstm/models/best_model_{self.ticker}.h5")
+                self.get_data()
+                self.preprocess()
+
             except Exception:
                 self.train_lstm()
 
@@ -280,7 +285,7 @@ class Lstm():
         self.new_preds.to_csv(f'new_preds_{self.ticker}.csv')
 
         fig, ax = plt.subplots(figsize=(12,8))
-        plt.title('Next 6 Months Predictions')
+        plt.title(f'Next {self.range} Months Predictions')
         ax.plot('Date', 'Predictions', data=self.new_preds, label='Predictions')
         plt.xticks(rotation=60)
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
@@ -314,7 +319,7 @@ class Lstm():
 
         # Create a layout for the graph
         layout = go.Layout(
-            title='Next 6 Months Predictions',
+            title=f'Next {self.range} Months Predictions',
             xaxis=dict(title='Date', tickangle=60),
             yaxis=dict(title='Values'),
         )
