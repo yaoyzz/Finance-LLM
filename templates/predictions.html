@@ -518,92 +518,22 @@
 
 
               <li class="l-section section">
-                <div class="work">
-                  <h2>Selected work</h2>
-                  <div class="work--lockup">
-                    <ul class="slider">
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/MSFT.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">MSFT</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/AMZN.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">AMZN</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/NVDA.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">NVDA</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/QQQ.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">QQQ</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/GOOG.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">GOOG</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/AAPL.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">AAPL</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/SPY.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">SPY</p>
-                            </a>
-                          </li>    
-                          
-    
-         <li class="slider--item slider--item-left">
-                            <a href="#0">
-                              <div class="slider--item-image">
-                                <img src="{ url_for('static', filename='img/^DJI.png') }" alt="Victory">
-                              </div>
-                              <p class="slider--item-title">^DJI</p>
-                            </a>
-                          </li>    
-                          
-    
-                    </ul>
+                <div class="predictions">
+                    <h2>Selected Stocks</h2>
+                    <div class="work--lockup">
+                        <ul class="slider">
+                            {% for image, title in image_data %}
+                            <li class="slider--item {{ ['slider--item-left', 'slider--item-center', 'slider--item-right'][loop.index0] }}">
+                                <a href="#0">
+                                    <div class="slider--item-image">
+                                        <img src="{{ url_for('static', filename='img/' + image) }}" alt="Image">
+                                    </div>
+                                    <p class="slider--item-title">{{ title }}</p>
+                                    <p class="slider--item-description">Description.</p>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
 
                     <div class="slider--prev">
                       <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
