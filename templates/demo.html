@@ -70,6 +70,10 @@
                                 Johnson & Johnson
                             </label>
                             <label>
+                                <input type="checkbox" name="stock-name" value="GOOG">
+                                Google
+                            </label>
+                            <label>
                                 <input type="checkbox" name="stock-name" value="INTC">
                                 Intel Corporation
                             </label>
@@ -176,8 +180,24 @@
                             </button> -->
                         </div>
 
+                        <label for="source-name" style="margin-top: 20px;">Sources:</label>
+                        <div id="source-checkboxes" style="margin-bottom: 10px;">
+                            <label>
+                                <input type="checkbox" name="source-name" value="Twitter">
+                                Twitter
+                            </label>
+                            <label>
+                                <input type="checkbox" name="source-name" value="Twitter">
+                                Benzinga
+                            </label>
+                            <label>
+                                <input type="checkbox" name="source-name" value="Twitter">
+                                Yahoo Finance
+                            </label>
+                            </div>
 
-                        <label for="time-name" style="margin-bottom: 0px;">Time range predictions:</label>
+
+                        <label for="time-name" style="margin-bottom: 0px; margin-top: 20px;">Time range predictions:</label>
                         <!-- <input type="text" id="source-search" placeholder="Select the source"> -->
                         <div id="time-checkboxes" style="margin-top: 0px; margin-bottom: 10px;">
                             
@@ -232,7 +252,7 @@
                                     </button> -->
                                 <!-- </div> -->
                                <div>
-                                <label for="model-name-toggle" style="margin-bottom: 10px;">Models:</label>
+                                <label for="model-name-toggle" style="margin-bottom: 10px;">Customize Model:</label>
                             </div>
                                 <label class="switch">
                                     <input type="checkbox" id="model-name-toggle" name="model-name-toggle">
