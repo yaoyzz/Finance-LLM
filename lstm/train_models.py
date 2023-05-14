@@ -1,9 +1,10 @@
-from lstm import *
+from lstm.lstm import Lstm
 import os
 import sys
 sys.path.append(os.path.abspath('..'))
 # print(os.getcwd())
 from etl.api_etl.yahoofinance import *
+
 from etl.api_etl.alphavantage import *
 from data.preprocess.preprocess import *
 import json

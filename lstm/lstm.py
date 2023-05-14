@@ -1,15 +1,15 @@
 # uncomment to install the required libraries
-# import os
-# import sys
-# sys.path.append(os.path.abspath('..'))
-# from impo import impo
-# impo.imp_inst.import_or_install('pandas')
-# impo.imp_inst.import_or_install('scikit-learn')
-# impo.imp_inst.import_or_install('numpy')
-# impo.imp_inst.import_or_install('tensorflow')
-# impo.imp_inst.import_or_install('keras')
-# impo.imp_inst.import_or_install('matplotlib')
-# impo.imp_inst.import_or_install('plotly')
+import os
+import sys
+sys.path.append(os.path.abspath('..'))
+from impo import impo
+impo.imp_inst.import_or_install('pandas')
+impo.imp_inst.import_or_install('scikit-learn')
+impo.imp_inst.import_or_install('numpy')
+impo.imp_inst.import_or_install('tensorflow')
+impo.imp_inst.import_or_install('keras')
+impo.imp_inst.import_or_install('matplotlib')
+impo.imp_inst.import_or_install('plotly')
 
 import pandas as pd
 from datetime import date
@@ -26,12 +26,15 @@ import plotly.graph_objs as go
 
 
 class Lstm(): 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, range: int):
         self.ticker = ticker
+        self.range = int(range)
+        self.days = int(range*30)
         self.data = None
         self.data_original = None
         self.new_data = None
         self.dat_orig_final = None
+        self.new_data_orig_final = None
         self.X = None
         self.y = None
         self.X_train = None
@@ -41,6 +44,7 @@ class Lstm():
         self.X_test = None
         self.y_test = None
         self.split_idx = None
+        self.split_idx_val = None
         self.model = None
         self.x_pred  = None
         self.y_pred = None
@@ -50,16 +54,21 @@ class Lstm():
         self.new_preds = None
         print('\nlstm intance initialized')
     
+    ############################################################
+
     def get_data(self):
         try:
-            self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
+            #os.chdir(os.getcwd())
+            self.data = pd.read_csv(f'data/{self.ticker}_cleaned_data.csv')
             print(f'{self.ticker} data imported. Size: {self.data.shape}')
         except FileNotFoundError:
             print(f'Error: File for {self.ticker} not found.')
 
-        self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
+        #self.data = pd.read_csv(f'../data/{self.ticker}_cleaned_data.csv')
         print(f'{self.ticker} size: {self.data.shape}')
         self.data_original = self.data.copy()
+
+    ############################################################
 
     def preprocess(self):
         # Preprocess date column
@@ -68,6 +77,14 @@ class Lstm():
 
         self.data['Date'] = pd.to_datetime(self.data['date'])
         self.data.drop(['date'], axis=1, inplace=True)
+
+        self.data['month_sin'] = np.sin(2*np.pi*self.data['Date'].dt.month/12)
+        self.data['month_cos'] = np.cos(2*np.pi*self.data['Date'].dt.month/12)
+        self.data['day_of_month_sin'] = np.sin(2*np.pi*self.data['Date'].dt.day/31)
+        self.data['day_of_month_cos'] = np.cos(2*np.pi*self.data['Date'].dt.day/31)
+        self.data['day_of_week_sin'] = np.sin(2*np.pi*self.data['day']/5)
+        self.data['day_of_week_cos'] = np.cos(2*np.pi*self.data['day']/5)
+        self.data = self.data.drop('day', axis=1)
 
         self.data['Year'] = self.data['Date'].dt.year
         self.data['Month'] = self.data['Date'].dt.month
@@ -79,7 +96,7 @@ class Lstm():
         self.data.set_index('Date', inplace=True)
 
         # lag the 'close_price' column by three months
-        self.data['close_price_lagged'] = self.data['close'].shift(6*30)
+        self.data['close_price_lagged'] = self.data['close'].shift(-self.days)
 
         # reset the index back to a column
         self.data.reset_index(inplace=True)
@@ -87,20 +104,25 @@ class Lstm():
         # create new data as last three months of data
         self.new_data = self.data[self.data['close_price_lagged'].isna()==True].copy().drop(['close_price_lagged'], axis=1)
         self.data_orig_final = self.data.copy()
+        self.new_data_orig = self.new_data.copy()
         self.data = self.data[self.data['close_price_lagged'].isna()==False].copy()
 
         self.data = self.data.drop('Date', axis=1)
+        self.new_data = self.new_data.drop('Date', axis=1)
 
         # scale data
         scaler = StandardScaler()
-        self.data.iloc[:, 1:28] = scaler.fit_transform(self.data.iloc[:, 1:28])  # standardize year and day columns
-        self.new_data.iloc[:, 1:28] = scaler.fit_transform(self.new_data.iloc[:, 1:28])
+        self.data.iloc[:, 1:self.data.shape[1]-1] = scaler.fit_transform(self.data.iloc[:, 1:self.data.shape[1]-1])  # standardize year and day columns
+        self.new_data.iloc[:, 1:self.new_data.shape[1]-1] = scaler.fit_transform(self.new_data.iloc[:, 1:self.new_data.shape[1]-1])
 
         self.X = self.data.drop('close_price_lagged', axis=1).values
         self.y = self.data['close_price_lagged'].values.reshape(-1, 1)
+        self.new_data = self.new_data.values
 
         # reshape for LSTM
         self.X = self.X.reshape(self.X.shape[0], 1, self.X.shape[1])  # reshape to 3D array
+
+    ############################################################
 
     def train_lstm(self, idx=0.8, layers=6, lr=0.01, early_stopping=200, epochs=2000, save="On"):
         if self.X is None:
@@ -112,8 +134,9 @@ class Lstm():
         self.y_train, self.y_test = self.y[:self.split_idx], self.y[self.split_idx:]
 
         # Split train into train and val test
-        self.X_train, self.X_val = self.X_train[:self.split_idx], self.X_train[self.split_idx:]
-        self.y_train, self.y_test = self.y_train[:self.split_idx], self.y_train[self.split_idx:]
+        self.split_idx_val = int(len(self.X_train) * idx)
+        self.X_train, self.X_val = self.X_train[:self.split_idx_val], self.X_train[self.split_idx_val:]
+        self.y_train, self.y_val = self.y_train[:self.split_idx_val], self.y_train[self.split_idx_val:]
 
         # Define the LSTM model
         model = Sequential()
@@ -130,7 +153,7 @@ class Lstm():
         model.compile(optimizer=opt, loss='mean_absolute_error', metrics=['mae'])
 
         # Define early stopping criteria
-        early_stopping = EarlyStopping(monitor='val_loss', patience=early_stopping)
+        early_stopping = EarlyStopping(monitor='val_mae', patience=early_stopping, mode='min', verbose=1)
 
         # Train the model with early stopping
         history = model.fit(self.X_train, self.y_train, 
@@ -156,20 +179,22 @@ class Lstm():
 
         # Save the model
         if save=="On":
-            model.save(f"best_model_{self.ticker}.h5")
-            self.model = load_model(f"best_model_{self.ticker}.h5")
+            model.save(f"lstm/models/best_model_{self.ticker}.h5")
+            #ModelCheckpoint(f"best_model_{self.ticker}.h5", monitor='val_mae', mode='min', save_best_only=True)
+            self.model = load_model(f"lstm/models/best_model_{self.ticker}.h5")
         else:
             self.model = model
 
+    ############################################################
 
     def plot_train(self):
         if self.model is None:
             self.train_lstm()
         
         self.preds_train = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][180:180+(self.split_idx**2)],
-            'Predictions': self.split_idxx_pred,
-            'Observed': self.data_orig_final['close_price_lagged'][:(self.split_idx**2)]
+            'Date': self.data_orig_final['Date'][:self.split_idx_val]+ pd.DateOffset(days=self.days),
+            'Predictions': self.train_pred,
+            'Observed': self.data_orig_final['close_price_lagged'][:self.split_idx_val]
         })
 
         self.preds_train.to_csv(f'train_pred_{self.ticker}.csv')
@@ -183,36 +208,40 @@ class Lstm():
         ax.legend()
         plt.show()
 
+    ############################################################
+
     def plot_val(self):
         if self.model is None:
             self.train_lstm()
         
-        self.preds_train = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][180:180+self.split_idx],
-            'Predictions': self.split_idxx_pred,
-            'Observed': self.data_orig_final['close_price_lagged'][:self.split_idx]
+        self.preds_val = pd.DataFrame({
+            'Date': self.data_orig_final['Date'][self.split_idx_val:self.split_idx] + pd.DateOffset(days=self.days),
+            'Predictions': self.val_pred,
+            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx_val:self.split_idx]
         })
 
-        self.preds_train.to_csv(f'val_pred_{self.ticker}.csv')
+        self.preds_val.to_csv(f'val_pred_{self.ticker}.csv')
 
         fig, ax = plt.subplots(figsize=(12,8))
         plt.title('Train Predictions')
-        ax.plot('Date', 'Predictions', data=self.preds_train, label='Predictions')
-        ax.plot('Date', 'Observed', data=self.preds_train, label='Observed', linewidth=0.5) # set alpha to 0.5 for the Observed line
+        ax.plot('Date', 'Predictions', data=self.preds_val, label='Predictions')
+        ax.plot('Date', 'Observed', data=self.preds_val, label='Observed', linewidth=0.5) # set alpha to 0.5 for the Observed line
         plt.xticks(rotation=60)
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=3))
         ax.legend()
         plt.show()
+
+    ############################################################
 
     def plot_test(self):
         if self.model is None:
             self.train_lstm()
 
         self.preds_test = pd.DataFrame({
-            'Date': self.data_orig_final['Date'][self.split_idx+180:self.data_orig_final.shape[0]].reset_index(drop=True),
-            'Predictions': self.y_pred,
-            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx: self.data_orig_final.shape[0]-180].reset_index(drop=True)
-        })
+            'Date': self.data_orig_final['Date'][self.split_idx:self.data_orig_final.shape[0]-self.days] + pd.DateOffset(days=self.days),
+            'Predictions': self.test_pred,
+            'Observed': self.data_orig_final['close_price_lagged'][self.split_idx:self.data_orig_final.shape[0]-self.days]
+            })
 
         self.preds_test.to_csv(f'test_pred_{self.ticker}.csv')
 
@@ -225,10 +254,15 @@ class Lstm():
         ax.legend()
         plt.show()
 
+    ############################################################
+
     def predict(self):
         if self.model is None:
             try:
-                self.model = load_model(f"best_model_{self.ticker}.h5")
+                self.model = load_model(f"lstm/models/best_model_{self.ticker}.h5")
+                self.get_data()
+                self.preprocess()
+
             except Exception:
                 self.train_lstm()
 
@@ -237,24 +271,29 @@ class Lstm():
         self.new_pred = self.model.predict(self.new_data)
         self.new_pred = [x[0] for x in self.new_pred]
 
+    ############################################################
+
     def plot_preds(self):
         if self.new_pred is None:
             self.predict()
 
         self.new_preds = pd.DataFrame({
-            'Date': self.new_data['Date'],
+            'Date': self.new_data_orig['Date'],
             'Predictions': self.new_pred
         })
 
         self.new_preds.to_csv(f'new_preds_{self.ticker}.csv')
 
         fig, ax = plt.subplots(figsize=(12,8))
-        plt.title('Next 6 Months Predictions')
+        plt.title(f'Next {self.range} Months Predictions')
         ax.plot('Date', 'Predictions', data=self.new_preds, label='Predictions')
         plt.xticks(rotation=60)
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=1))
         ax.legend()
+        fig.savefig(f'static/img/{self.ticker}.png')
         plt.show()
+
+    ############################################################
 
     def plot_all(self):
         if self.new_pred is None:
@@ -280,7 +319,7 @@ class Lstm():
 
         # Create a layout for the graph
         layout = go.Layout(
-            title='Next 6 Months Predictions',
+            title=f'Next {self.range} Months Predictions',
             xaxis=dict(title='Date', tickangle=60),
             yaxis=dict(title='Values'),
         )

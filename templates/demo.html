@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Global</title>
+  <title>QuantAI</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,10 +15,10 @@
 <!-- notification for small viewports and landscape oriented smartphones -->
 <div class="device-notification">
   <a class="device-notification--logo" href="#0">
-    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Global">
-    <p>Global</p>
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="QuantAI">
+    <p>QuantAI</p>
   </a>
-  <p class="device-notification--message">Global has so much to offer that we must request you orient your device to portrait or find a larger screen. You won't be disappointed.</p>
+  <p class="device-notification--message">QuantAI has so much to offer that we must request you orient your device to portrait or find a larger screen. You won't be disappointed.</p>
 </div>
 
 <div class="perspective effect-rotate-left">
@@ -27,8 +27,8 @@
       <div class="l-wrapper">
         <header class="header">
           <a class="header--logo" href="#0">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Global">
-            <p>Global</p>
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="QuantAI">
+            <p>Quant AI</p>
           </a>
           <button class="header--cta cta">Hire Us</button>
           <div class="header--nav-toggle">
@@ -66,10 +66,26 @@
                                 Microsoft
                             </label>
                             <label>
-                                <input type="checkbox" name="stock-name" value="JNJ">
-                                Johnson & Johnson
+                                <input type="checkbox" name="stock-name" value="AMZN">
+                                Amazon
                             </label>
                             <label>
+                                <input type="checkbox" name="stock-name" value="NVDA">
+                                Nvidia
+                            </label>
+                            <label>
+                                <input type="checkbox" name="stock-name" value="QQQ">
+                                Invesco
+                            </label>
+                            <!-- <label>
+                                <input type="checkbox" name="stock-name" value="JNJ">
+                                Johnson & Johnson
+                            </label> -->
+                            <label>
+                                <input type="checkbox" name="stock-name" value="GOOG">
+                                Google
+                            </label>
+                            <!-- <label>
                                 <input type="checkbox" name="stock-name" value="INTC">
                                 Intel Corporation
                             </label>
@@ -136,12 +152,12 @@
                             <label>
                                 <input type="checkbox" name="stock-name" value="NKE">
                                 Nike Inc
-                            </label>
+                            </label> -->
                             <label>
                                 <input type="checkbox" name="stock-name" value="AAPL">
                                 Apple Inc
                             </label>
-                            <label>
+                            <!-- <label>
                                 <input type="checkbox" name="stock-name" value="IBM">
                                 International Business Machines Corp
                             </label>
@@ -160,6 +176,14 @@
                             <label>
                                 <input type="checkbox" name="stock-name" value="AMGN">
                                 Amgen, Inc.
+                            </label> -->
+                            <label>
+                                <input type="checkbox" name="stock-name" value="SPY">
+                                S&P 500
+                            </label>
+                            <label>
+                                <input type="checkbox" name="stock-name" value="^DJI">
+                                Dow Jones
                             </label>
 
                             <!-- <button class="cta">Predict
@@ -172,8 +196,24 @@
                             </button> -->
                         </div>
 
+                        <label for="source-name" style="margin-top: 20px;">Sources:</label>
+                        <div id="source-checkboxes" style="margin-bottom: 10px;">
+                            <label>
+                                <input type="checkbox" name="source-name" value="Twitter">
+                                Twitter
+                            </label>
+                            <label>
+                                <input type="checkbox" name="source-name" value="Twitter">
+                                Benzinga
+                            </label>
+                            <label>
+                                <input type="checkbox" name="source-name" value="YouTube">
+                                YouTube
+                            </label>
+                            </div>
 
-                        <label for="time-name" style="margin-bottom: 0px;">Time range predictions:</label>
+
+                        <label for="time-name" style="margin-bottom: 0px; margin-top: 20px;">Time range predictions:</label>
                         <!-- <input type="text" id="source-search" placeholder="Select the source"> -->
                         <div id="time-checkboxes" style="margin-top: 0px; margin-bottom: 10px;">
                             
@@ -228,7 +268,7 @@
                                     </button> -->
                                 <!-- </div> -->
                                <div>
-                                <label for="model-name-toggle" style="margin-bottom: 10px;">Models:</label>
+                                <label for="model-name-toggle" style="margin-bottom: 10px;">Customize Model:</label>
                             </div>
                                 <label class="switch">
                                     <input type="checkbox" id="model-name-toggle" name="model-name-toggle">
@@ -517,6 +557,35 @@
                 
             </li>
         </form>
+        <script>
+            // Get all checkboxes and form
+            var checkboxes = document.querySelectorAll('input[type="checkbox"][name="stock-name"]');
+            var form = document.querySelector('form');
+        
+            // Listen for changes
+            checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    // Count checked checkboxes
+                    var checked = document.querySelectorAll('input[type="checkbox"][name="stock-name"]:checked');
+                    if (checked.length > 3) {
+                        // More than 3 are checked, show an alert and uncheck this one
+                        alert("Due to prototype limitation, we only support 3 inputs now, apology for the inconvenience :(");
+                        this.checked = false;
+                    }
+                });
+            });
+        
+            // Listen for form submission
+            form.addEventListener('submit', function(e) {
+                // Count checked checkboxes
+                var checked = document.querySelectorAll('input[type="checkbox"][name="stock-name"]:checked');
+                if (checked.length < 3) {
+                    // Less than 3 are checked, prevent form submission and show an alert
+                    e.preventDefault();
+                    alert("You must select exactly 3 stocks. Apologies for the inconvenience :(");
+                }
+            });
+        </script>
         <script>
             const applymtch = document.getElementById("search-stock");
 
