@@ -558,6 +558,35 @@
             </li>
         </form>
         <script>
+            // Get all checkboxes and form
+            var checkboxes = document.querySelectorAll('input[type="checkbox"][name="stock-name"]');
+            var form = document.querySelector('form');
+        
+            // Listen for changes
+            checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    // Count checked checkboxes
+                    var checked = document.querySelectorAll('input[type="checkbox"][name="stock-name"]:checked');
+                    if (checked.length > 3) {
+                        // More than 3 are checked, show an alert and uncheck this one
+                        alert("Due to prototype limitation, we only support 3 inputs now, apology for the inconvenience :(");
+                        this.checked = false;
+                    }
+                });
+            });
+        
+            // Listen for form submission
+            form.addEventListener('submit', function(e) {
+                // Count checked checkboxes
+                var checked = document.querySelectorAll('input[type="checkbox"][name="stock-name"]:checked');
+                if (checked.length < 3) {
+                    // Less than 3 are checked, prevent form submission and show an alert
+                    e.preventDefault();
+                    alert("You must select exactly 3 stocks. Apologies for the inconvenience :(");
+                }
+            });
+        </script>
+        <script>
             const applymtch = document.getElementById("search-stock");
 
             applymtch.addEventListener("click", () => {
