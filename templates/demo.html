@@ -9,6 +9,117 @@
   <meta name="keywords" content="global, template, html, sass, jquery">
   <meta name="author" content="Bucky Maler">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <style>
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin-right: 10px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+        border-radius: 34px;
+      }
+      
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+        border-radius: 50%;
+      }
+      
+      input:checked + .slider {
+        background-color: #2196F3;
+      }
+      
+      input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+      }
+      
+      input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+      }
+      
+      .slider.round {
+        border-radius: 34px;
+      }
+      
+      .slider.round:before {
+        border-radius: 50%;
+      }
+      
+      .switch-text {
+        display: inline-block;
+        vertical-align: middle;
+      }
+      #more-models {
+        display: none;
+      }
+      
+      input:checked ~ #more-models {
+        display: block;
+      }
+
+      #stock-checkboxes {
+        overflow-x: auto;
+        white-space: nowrap;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    #stock-search {
+        background-color: black;
+        color: #f2f2f2;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        padding: 5px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+
+    #search-stock {
+        background-color: #f2f2f2;
+        color: black;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        padding: 5px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+    </style>
 </head>
 <body>
 
@@ -45,14 +156,14 @@
             <div class="intro">
               <div class="intro--banner">
                 <h1>Predict<br>Stocks</h1>
-                <button class="cta">Predict
+                <!-- <button class="cta">Predict
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 150 118" style="enable-background:new 0 0 150 118;" xml:space="preserve">
                   <g transform="translate(0.000000,118.000000) scale(0.100000,-0.100000)">
                     <path d="M870,1167c-34-17-55-57-46-90c3-15,81-100,194-211l187-185l-565-1c-431,0-571-3-590-13c-55-28-64-94-18-137c21-20,33-20,597-20h575l-192-193C800,103,794,94,849,39c20-20,39-29,61-29c28,0,63,30,298,262c147,144,272,271,279,282c30,51,23,60-219,304C947,1180,926,1196,870,1167z"/>
                   </g>
                   </svg>
                   <span class="btn-background"></span>
-                </button>
+                </button> -->
                 <img src="{{ url_for('static', filename='img/introduction-visual.png') }}" alt="Welcome">
               </div>
 
@@ -312,150 +423,6 @@
 
                                 </script>
 
-                                <style>
-
-                                .switch {
-                                    position: relative;
-                                    display: inline-block;
-                                    width: 60px;
-                                    height: 34px;
-                                    margin-right: 10px;
-                                    margin-top: 10px;
-                                    margin-bottom: 10px;
-                                  }
-                                  
-                                  .switch input {
-                                    opacity: 0;
-                                    width: 0;
-                                    height: 0;
-                                  }
-                                  
-                                  .slider {
-                                    position: absolute;
-                                    cursor: pointer;
-                                    top: 0;
-                                    left: 0;
-                                    right: 0;
-                                    bottom: 0;
-                                    background-color: #ccc;
-                                    -webkit-transition: .4s;
-                                    transition: .4s;
-                                    border-radius: 34px;
-                                  }
-                                  
-                                  .slider:before {
-                                    position: absolute;
-                                    content: "";
-                                    height: 26px;
-                                    width: 26px;
-                                    left: 4px;
-                                    bottom: 4px;
-                                    background-color: white;
-                                    -webkit-transition: .4s;
-                                    transition: .4s;
-                                    border-radius: 50%;
-                                  }
-                                  
-                                  input:checked + .slider {
-                                    background-color: #2196F3;
-                                  }
-                                  
-                                  input:focus + .slider {
-                                    box-shadow: 0 0 1px #2196F3;
-                                  }
-                                  
-                                  input:checked + .slider:before {
-                                    -webkit-transform: translateX(26px);
-                                    -ms-transform: translateX(26px);
-                                    transform: translateX(26px);
-                                  }
-                                  
-                                  .slider.round {
-                                    border-radius: 34px;
-                                  }
-                                  
-                                  .slider.round:before {
-                                    border-radius: 50%;
-                                  }
-                                  
-                                  .switch-text {
-                                    display: inline-block;
-                                    vertical-align: middle;
-                                  }
-                                  #more-models {
-                                    display: none;
-                                  }
-                                  
-                                  input:checked ~ #more-models {
-                                    display: block;
-                                  }
-                                </style>
-
-                                  
-
-
-
-
-                        <!-- <style>
-                            #stock-checkboxes {
-                                overflow-x: auto;
-                                white-space: nowrap;
-                                margin-top: 10px;
-                                margin-bottom: 10px;
-                            }
-
-                            #stock-search {
-                                background-color: black;
-                                color: white;
-                                width: 100%;
-                                }
-
-                            #search-stock{
-                                background-color: black;
-                                color: white;
-                                width: 100%;
-                            }
-
-
-                        </style> -->
-
-                        <style>
-                            #stock-checkboxes {
-                                overflow-x: auto;
-                                white-space: nowrap;
-                                margin-top: 10px;
-                                margin-bottom: 10px;
-                                border: 1px solid #ccc;
-                                padding: 10px;
-                                max-height: 150px;
-                                overflow-y: auto;
-                            }
-                        
-                            #stock-search {
-                                background-color: black;
-                                color: #f2f2f2;
-                                border: 1px solid #ccc;
-                                border-radius: 4px;
-                                width: 100%;
-                                padding: 5px;
-                                box-sizing: border-box;
-                                margin-bottom: 10px;
-                            }
-                        
-                            #search-stock {
-                                background-color: #f2f2f2;
-                                color: black;
-                                border: 1px solid #ccc;
-                                border-radius: 4px;
-                                width: 100%;
-                                padding: 5px;
-                                box-sizing: border-box;
-                                margin-bottom: 10px;
-                            }
-                        </style>
-                        
-
-
                         <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
                         <!-- <script>
                             $(document).ready(function() {
@@ -508,17 +475,8 @@
 
                         <button class="cta" id="search-stock" name="search-stock" style="width:100%">Search
                             
-                        </button>
-                        
-                    
-
-
-                    
-                    
-
-                    
-                </div>
-                
+                        </button>   
+                </div>      
             </li>
         </form>
         <script>
